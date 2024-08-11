@@ -65,3 +65,15 @@
   background-color: #f9f9f9; /* Slightly different background for back */
   transform: rotateY(180deg);
 }
+/* Custom styles for DaisyUI menu */
+.menu-item {
+  @apply block px-4 py-2 rounded-md hover:bg-gray-700 transition-colors;
+}
+
+.menu-title {
+  @apply text-sm font-semibold text-gray-400 mb-2;
+}
+
+.menu-sub {
+  @apply list-disc pl-4 space-y-1;
+}
