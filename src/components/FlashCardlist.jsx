@@ -33,7 +33,7 @@ const FlashcardList = () => {
     <div className="relative bg-transparent">
       <div className="flex justify-center p-4">
         <div className="w-full max-w-screen-sm">
-          <h2 className="text-2xl font-bold mb-6 text-center">Flashcards</h2>
+          <h2 className="text-4xl font-bold mb-6 text-center drop-shadow-2xl">!!QUESTIONS!!</h2>
           <div className="grid grid-cols-1 gap-6">
             {loading ? (
               // Skeleton Loader
@@ -48,7 +48,7 @@ const FlashcardList = () => {
               flashcards.map((flashcard) => (
                 <div
                   key={flashcard.id}
-                  className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 cursor-pointer text-left"
+                  className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 cursor-pointer text-left transition-transform duration-300 transform hover:scale-105 hover:shadow-2xl"
                   onClick={() => handleFlashcardClick(flashcard)}
                 >
                   <h3 className="text-lg font-semibold">{flashcard.question}</h3>
