@@ -1,11 +1,15 @@
+// FlashcardList.js
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import Flashcard from './FlashCard';
+import Pagination from './Pagination';
 
 const FlashcardList = () => {
   const [flashcards, setFlashcards] = useState([]);
   const [selectedFlashcardIndex, setSelectedFlashcardIndex] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     const fetchFlashcards = async () => {
@@ -41,6 +45,12 @@ const FlashcardList = () => {
     );
   };
 
+  // Pagination Logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = flashcards.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(flashcards.length / itemsPerPage);
+
   return (
     <div className="relative bg-transparent">
       <div className="flex justify-center p-4">
@@ -55,7 +65,7 @@ const FlashcardList = () => {
                 ></div>
               ))
             ) : (
-              flashcards.map((flashcard, index) => (
+              currentItems.map((flashcard, index) => (
                 <div
                   key={flashcard.id}
                   className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 cursor-pointer text-left transition-transform duration-300 transform hover:scale-105 hover:shadow-2xl"
@@ -66,6 +76,11 @@ const FlashcardList = () => {
               ))
             )}
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
 

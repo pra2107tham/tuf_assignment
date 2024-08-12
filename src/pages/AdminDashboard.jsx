@@ -16,14 +16,27 @@ const AdminDashboard = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
+  
+  // Search state
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Sorting state
+  const [sortColumn, setSortColumn] = useState('id');
+  const [sortDirection, setSortDirection] = useState('asc');
 
   const fetchFlashcards = async () => {
     setLoading(true);
-    const { data, error, count } = await supabase
+    let query = supabase
       .from('flashcards')
       .select('*', { count: 'exact' })
       .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
+    
+    if (searchTerm) {
+      query = query.ilike('question', `%${searchTerm}%`);
+    }
+
+    const { data, error, count } = await query.order(sortColumn, { ascending: sortDirection === 'asc' });
 
     if (error) {
       console.error('Error fetching flashcards:', error);
@@ -36,7 +49,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchFlashcards();
-  }, [currentPage]);
+  }, [currentPage, searchTerm, sortColumn, sortDirection]);
 
   const handleSelectRow = (id) => {
     setSelectedRows((prevSelected) =>
@@ -126,20 +139,26 @@ const AdminDashboard = () => {
     setCurrentPage(page);
   };
 
+  const handleSort = (column) => {
+    const newDirection = sortColumn === column && sortDirection === 'asc' ? 'desc' : 'asc';
+    setSortColumn(column);
+    setSortDirection(newDirection);
+  };
+
   return (
-    <div className="flex h-screen">
+    <div className="flex">
       <Sidebar />
 
       <main className="flex-1 p-6 bg-gray-100">
         <header className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold">Questions LIST</h1>
-          <Link to="/" className="btn btn-primary">Go to Home</Link>
+          <Link to="/" className="btn btn-outline btn-neutral font-semibold transition-colors duration-200">Go to Home</Link>
         </header>
 
         <div className="mb-4 flex space-x-4">
           <button
             onClick={() => setShowAddForm(true)}
-            className="btn bg-[#90EE90]"
+            className="btn bg-black text-white hover:btn"
           >
             Add New Question
           </button>
@@ -159,6 +178,16 @@ const AdminDashboard = () => {
           </button>
         </div>
 
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Search questions..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="input input-bordered w-full max-w-xs"
+          />
+        </div>
+
         {loading ? (
           <div className="text-center">Loading...</div>
         ) : (
@@ -166,7 +195,7 @@ const AdminDashboard = () => {
             <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
               <thead>
                 <tr>
-                  <th className="border-b px-4 py-2 text-left text-gray-700">
+                  <th className="border-b px-4 py-2 text-left text-gray-700 bg-slate-200 ">
                     <input
                       type="checkbox"
                       onChange={(e) =>
@@ -179,10 +208,16 @@ const AdminDashboard = () => {
                       checked={selectedRows.length === flashcards.length}
                     />
                   </th>
-                  <th className="border-b px-4 py-2 text-left text-gray-700">ID</th>
-                  <th className="border-b px-4 py-2 text-left text-gray-700">Question</th>
-                  <th className="border-b px-4 py-2 text-left text-gray-700">Answer</th>
-                  <th className="border-b px-4 py-2 text-left text-gray-700">Actions</th>
+                  <th className="border-b px-4 py-2 text-left  text-gray-700 bg-slate-200 cursor-pointer " onClick={() => handleSort('id')}>
+                    ID {sortColumn === 'id' && (sortDirection === 'asc' ? '↑' : '↓')}  
+                  </th>
+                  <th className="border-b px-4 py-2 text-left text-gray-700 bg-slate-200  cursor-pointer" onClick={() => handleSort('question')}>
+                    Question {sortColumn === 'question' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </th>
+                  <th className="border-b px-4 py-2 text-left text-gray-700 bg-slate-200  cursor-pointer" onClick={() => handleSort('answer')}>
+                    Answer {sortColumn === 'answer' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </th>
+                  <th className="border-b px-4 py-2 text-left text-gray-700 bg-slate-200  ">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -196,8 +231,8 @@ const AdminDashboard = () => {
                       />
                     </td>
                     <td className="px-4 py-2">{flashcard.id}</td>
-                    <td className="px-4 py-2">{flashcard.question}</td>
-                    <td className="px-4 py-2">{flashcard.answer}</td>
+                    <td className="px-4 py-2 whitespace-pre-wrap">{flashcard.question}</td>
+                    <td className="px-4 py-2 whitespace-pre-wrap">{flashcard.answer}</td>
                     <td className="px-4 py-2 flex space-x-2">
                       <button
                         onClick={() => handleEditClick(flashcard)}
@@ -220,7 +255,7 @@ const AdminDashboard = () => {
         )}
 
         {/* Pagination Controls */}
-        <div className="flex justify-center mt-6 mb-6 p-8  ">
+        <div className="flex justify-center mt-6 mb-6 p-8">
           <div className="join">
             <button
               className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
@@ -258,7 +293,7 @@ const AdminDashboard = () => {
                   name="question"
                   value={newFlashcard.question}
                   onChange={handleChangeNewFlashcard}
-                  className="w-full border border-gray-300 rounded p-2 h-24 resize-y overflow-auto"
+                  className="w-full border border-gray-300 rounded p-2 h-24 resize-y overflow-auto whitespace-pre-wrap"
                   placeholder="Enter the question here..."
                 />
               </div>
@@ -268,7 +303,7 @@ const AdminDashboard = () => {
                   name="answer"
                   value={newFlashcard.answer}
                   onChange={handleChangeNewFlashcard}
-                  className="w-full border border-gray-300 rounded p-2 h-32 resize-y overflow-auto"
+                  className="w-full border border-gray-300 rounded p-2 h-32 resize-y overflow-auto whitespace-pre-wrap"
                   placeholder="Enter the answer here..."
                 />
               </div>
@@ -281,7 +316,7 @@ const AdminDashboard = () => {
                 </button>
                 <button
                   onClick={handleAddFlashcard}
-                  className={`btn bg-[#90EE90] ${isProcessing ? 'btn-loading' : ''}`}
+                  className={`btn bg-black text-white hover:btn ${isProcessing ? 'btn-loading' : ''}`}
                   disabled={isProcessing}
                 >
                   {isProcessing ? (
@@ -290,7 +325,7 @@ const AdminDashboard = () => {
                       <span className="ml-2">Processing...</span>
                     </>
                   ) : (
-                    'Add Flashcard'
+                    'Add Question'
                   )}
                 </button>
               </div>
@@ -308,7 +343,7 @@ const AdminDashboard = () => {
                   name="question"
                   value={editForm.question}
                   onChange={handleEditChange}
-                  className="w-full border border-gray-300 rounded p-2 h-24 resize-y overflow-auto"
+                  className="w-full border border-gray-300 rounded p-2 h-24 resize-y overflow-auto whitespace-pre-wrap"
                   placeholder="Edit the question here..."
                 />
               </div>
@@ -318,7 +353,7 @@ const AdminDashboard = () => {
                   name="answer"
                   value={editForm.answer}
                   onChange={handleEditChange}
-                  className="w-full border border-gray-300 rounded p-2 h-32 resize-y overflow-auto"
+                  className="w-full border border-gray-300 rounded p-2 h-32 resize-y overflow-auto whitespace-pre-wrap"
                   placeholder="Edit the answer here..."
                 />
               </div>

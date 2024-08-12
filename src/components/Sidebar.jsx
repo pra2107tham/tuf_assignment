@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 const Sidebar = () => {
   return (
     <aside className="w-64 bg-base-200 text-gray-900 p-4">
-      <h2 className="text-lg font-semibold mb-4">Admin Panel</h2>
+      <h2 className="text-lg font-semibold mb-4">ADMIN PANEL</h2>
       
       <ul className="menu bg-base-200 rounded-box w-full space-y-2">
         {/* Dashboard Link */}
@@ -14,21 +14,15 @@ const Sidebar = () => {
             Dashboard
           </Link>
         </li>
-        {/* SQL Changes Link */}
-        <li>
-          <Link to="/admin/sql-changes" className="menu-item">
-            SQL Changes
-          </Link>
-        </li>
         {/* Projects Section */}
         <li>
-          <details className="bg-base-100 rounded-md p-2">
-            <summary className="cursor-pointer font-semibold">
+          <details className="bg-base-100 rounded-md p-2 open">
+            <summary className="cursor-pointer font-semibold open">
               Projects
             </summary>
-            <ul className="pl-4 space-y-1">
+            <ul className="pl-4 space-y-1 open">
               <li>
-                <details>
+                <details className='open'>
                   <summary className="cursor-pointer font-medium">
                     Project 1
                   </summary>

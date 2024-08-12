@@ -30,22 +30,22 @@ const FlashCard = ({ flashcard, onClose, onNext, onPrev, isNextDisabled, isPrevD
 
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm z-50 gap-16`}
+      className={`fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm z-50 gap-8`}
       onClick={onClose}
     >
       {/* Navigation Buttons */}
       <div className="flex gap-4 justify-between mt-4"
-        onClick={(e) => {
-          e.stopPropagation();
-        }}>
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
-          className={`btn btn-neutral ${isPrevDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`btn  ${isPrevDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
           onClick={onPrev}
           disabled={isPrevDisabled}
         >
           Previous
         </button>
       </div>
+      
       <div className="relative w-[38rem] h-[30rem]">
         <AnimatePresence initial={false}>
           <motion.div
@@ -73,7 +73,7 @@ const FlashCard = ({ flashcard, onClose, onNext, onPrev, isNextDisabled, isPrevD
                   &times;
                 </button>
                 <h2 className="card-title text-2xl mb-4">Question:</h2>
-                <p className="flex-grow overflow-auto text-lg custom-scrollbar break-words">
+                <p className="flex-grow overflow-auto text-lg break-words p-4 bg-gray-100 rounded-md">
                   {flashcard.question}
                 </p>
                 <div className="flex justify-end mt-3">
@@ -96,9 +96,10 @@ const FlashCard = ({ flashcard, onClose, onNext, onPrev, isNextDisabled, isPrevD
                   &times;
                 </button>
                 <h2 className="card-title text-2xl mb-4">Answer:</h2>
-                <p className="flex-grow overflow-auto text-lg p-4 break-words">
-                  {flashcard.answer}
-                </p>
+                <div
+                  className="flex-grow overflow-auto text-lg p-4 bg-gray-100 rounded-md"
+                  dangerouslySetInnerHTML={{ __html: flashcard.answer }}
+                />
                 <div className="flex justify-end mt-3">
                   <button className="btn btn-secondary" onClick={handleFlip}>
                     Back to Question
@@ -112,20 +113,16 @@ const FlashCard = ({ flashcard, onClose, onNext, onPrev, isNextDisabled, isPrevD
 
       {/* Navigation Buttons */}
       <div className="flex gap-4 justify-between mt-4"
-        onClick={(e) => {
-          e.stopPropagation();
-        }}>
-        
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
-          className={`btn btn-neutral ${isNextDisabled ? 'cursor-not-allowed' : ''}`}
+          className={`btn  ${isNextDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
           onClick={onNext}
           disabled={isNextDisabled}
         >
           Next
         </button>
       </div>
-      
-
     </div>
   );
 };
