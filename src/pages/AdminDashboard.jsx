@@ -12,24 +12,31 @@ const AdminDashboard = () => {
   const [editForm, setEditForm] = useState({ question: '', answer: '' });
   const [showAddForm, setShowAddForm] = useState(false);
   const [newFlashcard, setNewFlashcard] = useState({ question: '', answer: '' });
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 10;
 
   const fetchFlashcards = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error, count } = await supabase
       .from('flashcards')
-      .select('*');
+      .select('*', { count: 'exact' })
+      .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
 
     if (error) {
       console.error('Error fetching flashcards:', error);
     } else {
       setFlashcards(data || []);
+      setTotalPages(Math.ceil(count / itemsPerPage));
     }
     setLoading(false);
   };
 
   useEffect(() => {
     fetchFlashcards();
-  }, []);
+  }, [currentPage]);
 
   const handleSelectRow = (id) => {
     setSelectedRows((prevSelected) =>
@@ -115,6 +122,10 @@ const AdminDashboard = () => {
     setNewFlashcard((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -128,7 +139,7 @@ const AdminDashboard = () => {
         <div className="mb-4 flex space-x-4">
           <button
             onClick={() => setShowAddForm(true)}
-            className="btn btn-success"
+            className="btn bg-[#90EE90]"
           >
             Add New Question
           </button>
@@ -185,12 +196,12 @@ const AdminDashboard = () => {
                       />
                     </td>
                     <td className="px-4 py-2">{flashcard.id}</td>
-                    <td className="px-4 py-2 ">{flashcard.question}</td>
-                    <td className=" px-4 py-2">{flashcard.answer}</td>
-                    <td className=" px-4 py-2 flex space-x-2">
+                    <td className="px-4 py-2">{flashcard.question}</td>
+                    <td className="px-4 py-2">{flashcard.answer}</td>
+                    <td className="px-4 py-2 flex space-x-2">
                       <button
                         onClick={() => handleEditClick(flashcard)}
-                        className="btn btn-warning"
+                        className="btn "
                       >
                         Edit
                       </button>
@@ -208,105 +219,133 @@ const AdminDashboard = () => {
           </div>
         )}
 
-{showAddForm && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50">
-    <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
-      <h2 className="text-2xl font-bold mb-4">Add New Flashcard</h2>
-      <div className="mb-4">
-        <label className="block text-gray-700">Question</label>
-        <textarea
-          name="question"
-          value={newFlashcard.question}
-          onChange={handleChangeNewFlashcard}
-          className="w-full border border-gray-300 rounded p-2 h-24 resize-y overflow-auto"
-          placeholder="Enter the question here..."
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block text-gray-700">Answer</label>
-        <textarea
-          name="answer"
-          value={newFlashcard.answer}
-          onChange={handleChangeNewFlashcard}
-          className="w-full border border-gray-300 rounded p-2 h-32 resize-y overflow-auto"
-          placeholder="Enter the answer here..."
-        />
-      </div>
-      <div className="flex justify-end space-x-4">
-        <button
-          onClick={() => setShowAddForm(false)}
-          className="btn btn-neutral"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleAddFlashcard}
-          className={`btn btn-success ${isProcessing ? 'btn-loading' : ''}`}
-          disabled={isProcessing}
-        >
-          {isProcessing ? (
-            <>
-              <span className="loading loading-spinner"></span>
-              <span className="ml-2">Processing...</span>
-            </>
-          ) : (
-            'Add Flashcard'
-          )}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+        {/* Pagination Controls */}
+        <div className="flex justify-center mt-6 mb-6 p-8  ">
+          <div className="join">
+            <button
+              className={`join-item btn ${currentPage === 1 ? 'btn-disabled' : ''}`}
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              «
+            </button>
+            {Array.from({ length: totalPages }, (_, index) => (
+              <button
+                key={index}
+                className={`join-item btn ${currentPage === index + 1 ? 'btn-active' : ''}`}
+                onClick={() => handlePageChange(index + 1)}
+              >
+                {index + 1}
+              </button>
+            ))}
+            <button
+              className={`join-item btn ${currentPage === totalPages ? 'btn-disabled' : ''}`}
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              »
+            </button>
+          </div>
+        </div>
 
+        {showAddForm && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
+              <h2 className="text-2xl font-bold mb-4">Add New Flashcard</h2>
+              <div className="mb-4">
+                <label className="block text-gray-700">Question</label>
+                <textarea
+                  name="question"
+                  value={newFlashcard.question}
+                  onChange={handleChangeNewFlashcard}
+                  className="w-full border border-gray-300 rounded p-2 h-24 resize-y overflow-auto"
+                  placeholder="Enter the question here..."
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700">Answer</label>
+                <textarea
+                  name="answer"
+                  value={newFlashcard.answer}
+                  onChange={handleChangeNewFlashcard}
+                  className="w-full border border-gray-300 rounded p-2 h-32 resize-y overflow-auto"
+                  placeholder="Enter the answer here..."
+                />
+              </div>
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={() => setShowAddForm(false)}
+                  className="btn btn-neutral"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddFlashcard}
+                  className={`btn bg-[#90EE90] ${isProcessing ? 'btn-loading' : ''}`}
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? (
+                    <>
+                      <span className="loading loading-spinner"></span>
+                      <span className="ml-2">Processing...</span>
+                    </>
+                  ) : (
+                    'Add Flashcard'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {editFlashcard && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
-            <h2 className="text-2xl font-bold mb-4">Edit Flashcard</h2>
-            <div className="mb-4">
-              <label className="block text-gray-700">Question</label>
-              <textarea
-                name="question"
-                value={editForm.question}
-                onChange={handleEditChange}
-                className="w-full border border-gray-300 rounded p-2 h-24 resize-y overflow-auto"
-                placeholder="Edit the question here..."
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Answer</label>
-              <textarea
-                name="answer"
-                value={editForm.answer}
-                onChange={handleEditChange}
-                className="w-full border border-gray-300 rounded p-2 h-32 resize-y overflow-auto"
-                placeholder="Edit the answer here..."
-              />
-            </div>
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={() => setEditFlashcard(null)}
-                className="btn btn-neutral"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleUpdateFlashcard}
-                className={`btn btn-warning ${isProcessing ? 'btn-loading' : ''}`}
-                disabled={isProcessing}
-              >
-                {isProcessing ? (
-                  <>
-                    <span className="loading loading-spinner"></span>
-                    <span className="ml-2">Processing...</span>
-                  </>
-                ) : (
-                  'Update Flashcard'
-                )}
-              </button>
+            <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
+              <h2 className="text-2xl font-bold mb-4">Edit Flashcard</h2>
+              <div className="mb-4">
+                <label className="block text-gray-700">Question</label>
+                <textarea
+                  name="question"
+                  value={editForm.question}
+                  onChange={handleEditChange}
+                  className="w-full border border-gray-300 rounded p-2 h-24 resize-y overflow-auto"
+                  placeholder="Edit the question here..."
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700">Answer</label>
+                <textarea
+                  name="answer"
+                  value={editForm.answer}
+                  onChange={handleEditChange}
+                  className="w-full border border-gray-300 rounded p-2 h-32 resize-y overflow-auto"
+                  placeholder="Edit the answer here..."
+                />
+              </div>
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={() => setEditFlashcard(null)}
+                  className="btn btn-neutral"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpdateFlashcard}
+                  className={`btn btn-warning ${isProcessing ? 'btn-loading' : ''}`}
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? (
+                    <>
+                      <span className="loading loading-spinner"></span>
+                      <span className="ml-2">Processing...</span>
+                    </>
+                  ) : (
+                    'Update Flashcard'
+                  )}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
         )}
       </main>
     </div>
