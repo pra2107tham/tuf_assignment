@@ -4,7 +4,7 @@ import Flashcard from './FlashCard';
 
 const FlashcardList = () => {
   const [flashcards, setFlashcards] = useState([]);
-  const [selectedFlashcard, setSelectedFlashcard] = useState(null);
+  const [selectedFlashcardIndex, setSelectedFlashcardIndex] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,8 +25,20 @@ const FlashcardList = () => {
     fetchFlashcards();
   }, []);
 
-  const handleFlashcardClick = (flashcard) => {
-    setSelectedFlashcard(flashcard);
+  const handleFlashcardClick = (index) => {
+    setSelectedFlashcardIndex(index);
+  };
+
+  const handleNext = () => {
+    setSelectedFlashcardIndex((prevIndex) =>
+      prevIndex < flashcards.length - 1 ? prevIndex + 1 : prevIndex
+    );
+  };
+
+  const handlePrev = () => {
+    setSelectedFlashcardIndex((prevIndex) =>
+      prevIndex > 0 ? prevIndex - 1 : prevIndex
+    );
   };
 
   return (
@@ -36,7 +48,6 @@ const FlashcardList = () => {
           <h2 className="text-4xl font-bold mb-6 text-center drop-shadow-2xl">!!QUESTIONS!!</h2>
           <div className="grid grid-cols-1 gap-6">
             {loading ? (
-              // Skeleton Loader
               [...Array(3)].map((_, index) => (
                 <div
                   key={index}
@@ -44,14 +55,13 @@ const FlashcardList = () => {
                 ></div>
               ))
             ) : (
-              // Flashcards Display
-              flashcards.map((flashcard) => (
+              flashcards.map((flashcard, index) => (
                 <div
                   key={flashcard.id}
                   className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 cursor-pointer text-left transition-transform duration-300 transform hover:scale-105 hover:shadow-2xl"
-                  onClick={() => handleFlashcardClick(flashcard)}
+                  onClick={() => handleFlashcardClick(index)}
                 >
-                  <h3 className="text-lg font-semibold">{flashcard.question}</h3>
+                  <h3 className="text-lg font-semibold truncate ">{flashcard.question}</h3>
                 </div>
               ))
             )}
@@ -59,10 +69,14 @@ const FlashcardList = () => {
         </div>
       </div>
 
-      {selectedFlashcard && (
-        <Flashcard 
-          flashcard={selectedFlashcard} 
-          onClose={() => setSelectedFlashcard(null)} 
+      {selectedFlashcardIndex !== null && (
+        <Flashcard
+          flashcard={flashcards[selectedFlashcardIndex]}
+          onClose={() => setSelectedFlashcardIndex(null)}
+          onNext={handleNext}
+          onPrev={handlePrev}
+          isNextDisabled={selectedFlashcardIndex >= flashcards.length - 1}
+          isPrevDisabled={selectedFlashcardIndex <= 0}
         />
       )}
     </div>
